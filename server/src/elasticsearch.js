@@ -1,19 +1,19 @@
 import { Client } from "@elastic/elasticsearch";
 
-const ELASTICSEARCH_URL =
-  process.env.ELASTICSEARCH_URL || "http://localhost:9200";
-
-export const ELASTICSEARCH_INDEX =
-  process.env.ELASTICSEARCH_INDEX || "autocomplete";
+import {
+  ELASTICSEARCH_URL,
+  ELASTICSEARCH_INDEX,
+} from "./config.js";
 
 export const elasticsearch = new Client({
   node: ELASTICSEARCH_URL,
 });
 
 export async function ensureElasticsearchIndex() {
-  const exists = await elasticsearch.indices.exists({
-    index: ELASTICSEARCH_INDEX,
-  });
+  const exists =
+    await elasticsearch.indices.exists({
+      index: ELASTICSEARCH_INDEX,
+    });
 
   if (exists) {
     return;
@@ -37,9 +37,10 @@ export async function ensureElasticsearchIndex() {
 }
 
 export async function recreateElasticsearchIndex() {
-  const exists = await elasticsearch.indices.exists({
-    index: ELASTICSEARCH_INDEX,
-  });
+  const exists =
+    await elasticsearch.indices.exists({
+      index: ELASTICSEARCH_INDEX,
+    });
 
   if (exists) {
     await elasticsearch.indices.delete({
@@ -50,7 +51,9 @@ export async function recreateElasticsearchIndex() {
   await ensureElasticsearchIndex();
 }
 
-export async function seedElasticsearch(questions) {
+export async function seedElasticsearch(
+  questions
+) {
   const operations = [];
 
   for (let i = 0; i < questions.length; i++) {
