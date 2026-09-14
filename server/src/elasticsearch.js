@@ -1,19 +1,15 @@
 import { Client } from "@elastic/elasticsearch";
 
-import {
-  ELASTICSEARCH_URL,
-  ELASTICSEARCH_INDEX,
-} from "./config.js";
+import { ELASTICSEARCH_URL, ELASTICSEARCH_INDEX } from "./config.js";
 
 export const elasticsearch = new Client({
   node: ELASTICSEARCH_URL,
 });
 
 export async function ensureElasticsearchIndex() {
-  const exists =
-    await elasticsearch.indices.exists({
-      index: ELASTICSEARCH_INDEX,
-    });
+  const exists = await elasticsearch.indices.exists({
+    index: ELASTICSEARCH_INDEX,
+  });
 
   if (exists) {
     return;
@@ -31,16 +27,13 @@ export async function ensureElasticsearchIndex() {
     },
   });
 
-  console.log(
-    `Elasticsearch index created: ${ELASTICSEARCH_INDEX}`
-  );
+  console.log(`Elasticsearch index created: ${ELASTICSEARCH_INDEX}`);
 }
 
 export async function recreateElasticsearchIndex() {
-  const exists =
-    await elasticsearch.indices.exists({
-      index: ELASTICSEARCH_INDEX,
-    });
+  const exists = await elasticsearch.indices.exists({
+    index: ELASTICSEARCH_INDEX,
+  });
 
   if (exists) {
     await elasticsearch.indices.delete({
@@ -51,9 +44,7 @@ export async function recreateElasticsearchIndex() {
   await ensureElasticsearchIndex();
 }
 
-export async function seedElasticsearch(
-  questions
-) {
+export async function seedElasticsearch(questions) {
   const operations = [];
 
   for (let i = 0; i < questions.length; i++) {
@@ -78,7 +69,5 @@ export async function seedElasticsearch(
     refresh: true,
   });
 
-  console.log(
-    `Elasticsearch seeded: ${questions.length} documents`
-  );
+  console.log(`Elasticsearch seeded: ${questions.length} documents`);
 }

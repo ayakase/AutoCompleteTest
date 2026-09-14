@@ -1,30 +1,20 @@
-import {
-  qdrant,
-} from "../qdrant.js";
+import { qdrant } from "../qdrant.js";
 
-import {
-  QDRANT_COLLECTION,
-} from "../config.js";
+import { QDRANT_COLLECTION } from "../config.js";
 
-export async function bm25Search(
-  queryText,
-  limit = 5
-) {
-  const result = await qdrant.query(
-    QDRANT_COLLECTION,
-    {
-      query: {
-        text: queryText,
-        model: "qdrant/bm25",
-      },
+export async function bm25Search(queryText, limit = 5) {
+  const result = await qdrant.query(QDRANT_COLLECTION, {
+    query: {
+      text: queryText,
+      model: "qdrant/bm25",
+    },
 
-      using: "bm25",
+    using: "bm25",
 
-      limit,
+    limit,
 
-      with_payload: true,
-    }
-  );
+    with_payload: true,
+  });
 
   return result.points.map((point) => ({
     id: point.id,
@@ -35,10 +25,7 @@ export async function bm25Search(
 
 export default async function bm25Routes(app) {
   app.get("/api/bm25", async (request) => {
-    const {
-      q = "",
-      limit = 5,
-    } = request.query;
+    const { q = "", limit = 5 } = request.query;
 
     if (!q.trim()) {
       return {
@@ -47,10 +34,7 @@ export default async function bm25Routes(app) {
     }
 
     return {
-      results: await bm25Search(
-        q.trim(),
-        Number(limit)
-      ),
+      results: await bm25Search(q.trim(), Number(limit)),
     };
   });
 }

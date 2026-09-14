@@ -1,7 +1,4 @@
-import {
-  recreateQdrantCollection,
-  seedQdrant,
-} from "../qdrant.js";
+import { recreateQdrantCollection, seedQdrant } from "../qdrant.js";
 
 import {
   recreateElasticsearchIndex,
@@ -12,18 +9,13 @@ import { embedText } from "../embeddings.js";
 
 import { QUESTIONS } from "../dataset.js";
 
-export default async function recreateRoutes(
-  app
-) {
+export default async function recreateRoutes(app) {
   app.post("/api/recreate", async () => {
     const startedAt = performance.now();
 
     await recreateQdrantCollection();
 
-    await seedQdrant(
-      QUESTIONS,
-      embedText
-    );
+    await seedQdrant(QUESTIONS, embedText);
 
     await recreateElasticsearchIndex();
 
@@ -32,9 +24,7 @@ export default async function recreateRoutes(
     return {
       success: true,
       documents: QUESTIONS.length,
-      latencyMs: Math.round(
-        performance.now() - startedAt
-      ),
+      latencyMs: Math.round(performance.now() - startedAt),
     };
   });
 }

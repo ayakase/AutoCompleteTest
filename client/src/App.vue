@@ -176,40 +176,22 @@ onBeforeUnmount(() => {
 
       <div class="modes">
         <label>
-          <input
-            v-model="mode"
-            type="radio"
-            value="hybrid"
-          />
+          <input v-model="mode" type="radio" value="hybrid" />
           Hybrid
         </label>
 
         <label>
-          <input
-            v-model="mode"
-            type="radio"
-            value="bm25"
-          />
+          <input v-model="mode" type="radio" value="bm25" />
           BM25
         </label>
 
         <label>
-          <input
-            v-model="mode"
-            type="radio"
-            value="elasticsearch"
-          />
+          <input v-model="mode" type="radio" value="elasticsearch" />
           Elasticsearch
         </label>
       </div>
 
-      <input
-        v-model="query"
-        class="search-input"
-        type="text"
-        placeholder="Type something..."
-        autofocus
-      />
+      <input v-model="query" class="search-input" type="text" placeholder="Type something..." autofocus />
 
       <div class="meta">
         <span>
@@ -229,22 +211,12 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <p
-        v-if="error"
-        class="error"
-      >
+      <p v-if="error" class="error">
         {{ error }}
       </p>
 
-      <div
-        v-if="suggestions.length"
-        class="suggestions"
-      >
-        <div
-          v-for="item in suggestions"
-          :key="item.id"
-          class="suggestion"
-        >
+      <div v-if="suggestions.length" class="suggestions">
+        <div v-for="item in suggestions" :key="item.id" class="suggestion">
           <span class="text">
             {{ item.text }}
           </span>
@@ -258,15 +230,12 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <p
-        v-else-if="
-          query.trim().length >= 2 &&
-          countdown === 0 &&
-          !loading &&
-          !error
-        "
-        class="empty"
-      >
+      <p v-else-if="
+        query.trim().length >= 2 &&
+        countdown === 0 &&
+        !loading &&
+        !error
+      " class="empty">
         No suggestions
       </p>
     </section>

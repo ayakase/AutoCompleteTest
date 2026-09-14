@@ -1,10 +1,6 @@
-import {
-  ensureQdrantCollection,
-} from "./qdrant.js";
+import { ensureQdrantCollection } from "./qdrant.js";
 
-import {
-  ensureElasticsearchIndex,
-} from "./elasticsearch.js";
+import { ensureElasticsearchIndex } from "./elasticsearch.js";
 
 export async function initialize() {
   await ensureQdrantCollection();
