@@ -1,10 +1,10 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onBeforeUnmount } from "vue";
 import axios from "axios";
 
 const API_URL = "http://localhost:3000";
-
 const MODE_STORAGE_KEY = "autocomplete-mode";
+const DEBOUNCE_MS = 2000;
 
 const validModes = [
   "hybrid",
@@ -26,21 +26,52 @@ const suggestions = ref([]);
 const latency = ref(null);
 const error = ref("");
 const loading = ref(false);
+const countdown = ref(0);
 
 let debounceTimer = null;
-let requestId = 0;
+let countdownTimer = null;
+let abortController = null;
+
+function clearTimers() {
+  clearTimeout(debounceTimer);
+  clearInterval(countdownTimer);
+
+  debounceTimer = null;
+  countdownTimer = null;
+}
+
+function startCountdown() {
+  clearInterval(countdownTimer);
+
+  countdown.value = DEBOUNCE_MS / 1000;
+
+  countdownTimer = setInterval(() => {
+    countdown.value -= 0.1;
+
+    if (countdown.value <= 0) {
+      countdown.value = 0;
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+  }, 100);
+}
 
 async function fetchSuggestions() {
   const currentQuery = query.value.trim();
+
+  countdown.value = 0;
 
   if (currentQuery.length < 2) {
     suggestions.value = [];
     latency.value = null;
     error.value = "";
+    loading.value = false;
     return;
   }
 
-  const currentRequestId = ++requestId;
+  abortController?.abort();
+
+  abortController = new AbortController();
 
   loading.value = true;
   error.value = "";
@@ -52,41 +83,57 @@ async function fetchSuggestions() {
         params: {
           q: currentQuery,
           mode: mode.value,
+          limit: 5,
         },
+        signal: abortController.signal,
       }
     );
 
-    if (currentRequestId !== requestId) {
-      return;
-    }
-
     suggestions.value =
-      response.data.suggestions || [];
+      response.data.results || [];
 
     latency.value =
-      response.data.latency_ms;
+      response.data.latencyMs ?? null;
   } catch (err) {
-    if (currentRequestId !== requestId) {
+    if (
+      err.code === "ERR_CANCELED" ||
+      err.name === "CanceledError"
+    ) {
       return;
     }
+
+    suggestions.value = [];
+    latency.value = null;
 
     error.value =
       err.response?.data?.error ||
       err.message ||
       "Request failed";
   } finally {
-    if (currentRequestId === requestId) {
+    if (!abortController.signal.aborted) {
       loading.value = false;
     }
   }
 }
 
 function scheduleSearch() {
-  clearTimeout(debounceTimer);
+  clearTimers();
+
+  const currentQuery = query.value.trim();
+
+  if (currentQuery.length < 2) {
+    countdown.value = 0;
+    suggestions.value = [];
+    latency.value = null;
+    error.value = "";
+    return;
+  }
+
+  startCountdown();
 
   debounceTimer = setTimeout(() => {
     fetchSuggestions();
-  }, 250);
+  }, DEBOUNCE_MS);
 }
 
 function changeMode() {
@@ -95,12 +142,16 @@ function changeMode() {
     mode.value
   );
 
+  clearTimers();
+  abortController?.abort();
+
   suggestions.value = [];
   latency.value = null;
   error.value = "";
+  countdown.value = 0;
 
   if (query.value.trim().length >= 2) {
-    fetchSuggestions();
+    scheduleSearch();
   }
 }
 
@@ -110,6 +161,11 @@ watch(query, () => {
 
 watch(mode, () => {
   changeMode();
+});
+
+onBeforeUnmount(() => {
+  clearTimers();
+  abortController?.abort();
 });
 </script>
 
@@ -160,12 +216,16 @@ watch(mode, () => {
           Mode: <strong>{{ mode }}</strong>
         </span>
 
-        <span v-if="latency !== null">
-          {{ latency }} ms
+        <span v-if="countdown > 0">
+          Searching in {{ countdown.toFixed(1) }}s
         </span>
 
-        <span v-if="loading">
+        <span v-else-if="loading">
           Searching...
+        </span>
+
+        <span v-if="latency !== null && !loading">
+          {{ latency }} ms
         </span>
       </div>
 
@@ -190,7 +250,10 @@ watch(mode, () => {
           </span>
 
           <span class="score">
-            {{ item.score?.toFixed?.(4) ?? item.score }}
+            {{
+              item.score?.toFixed?.(4) ??
+              item.score
+            }}
           </span>
         </div>
       </div>
@@ -198,6 +261,7 @@ watch(mode, () => {
       <p
         v-else-if="
           query.trim().length >= 2 &&
+          countdown === 0 &&
           !loading &&
           !error
         "
@@ -208,6 +272,8 @@ watch(mode, () => {
     </section>
   </main>
 </template>
+
+
 
 <style>
 * {
