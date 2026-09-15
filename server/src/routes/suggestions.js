@@ -1,11 +1,10 @@
-import { bm25Search } from "./bm25.js";
-
-import { elasticsearchSearch } from "./elasticsearch.js";
-
-import { hybridSearch } from "./hybrid.js";
+import {
+  searchSuggestions,
+  UnknownSearchModeError,
+} from "../services/search/index.js";
 
 export default async function suggestionRoutes(app) {
-  app.get("/api/suggestions", async (request) => {
+  app.get("/api/suggestions", async (request, reply) => {
     const { q = "", mode = "hybrid", limit = 5 } = request.query;
 
     const queryText = q.trim();
@@ -22,30 +21,25 @@ export default async function suggestionRoutes(app) {
 
     const startedAt = performance.now();
 
-    let results;
+    try {
+      const results = await searchSuggestions(queryText, mode, resultLimit);
 
-    switch (mode) {
-      case "bm25":
-        results = await bm25Search(queryText, resultLimit);
-        break;
+      return {
+        mode,
+        query: queryText,
+        latencyMs: Math.round(performance.now() - startedAt),
+        results,
+      };
+    } catch (error) {
+      if (error instanceof UnknownSearchModeError) {
+        return reply.code(400).send({
+          mode,
+          query: queryText,
+          error: error.message,
+        });
+      }
 
-      case "elasticsearch":
-        results = await elasticsearchSearch(queryText, resultLimit);
-        break;
-
-      case "hybrid":
-        results = await hybridSearch(queryText, resultLimit);
-        break;
-
-      default:
-        return app.httpErrors.badRequest(`Unknown search mode: ${mode}`);
+      throw error;
     }
-
-    return {
-      mode,
-      query: queryText,
-      latencyMs: Math.round(performance.now() - startedAt),
-      results,
-    };
   });
 }

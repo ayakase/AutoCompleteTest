@@ -343,12 +343,33 @@ HybridAutocomplete/
 │
 ├── server/
 │   ├── src/
-│   │   ├── index.js
-│   │   ├── elasticsearch.js
-│   │   └── routes/
-│   │       ├── hybrid.js
-│   │       ├── bm25.js
-│   │       └── elasticsearch.js
+│   │   ├── index.js          # entry point: build app, register routes, initialize, listen
+│   │   ├── init.js           # boot checks: make sure indexes/collections exist
+│   │   ├── config.js         # environment based configuration
+│   │   │
+│   │   ├── routes/           # HTTP layer only (validation + response shaping)
+│   │   │   ├── health.js
+│   │   │   ├── bm25.js
+│   │   │   ├── elasticsearch.js
+│   │   │   ├── hybrid.js
+│   │   │   ├── suggestions.js
+│   │   │   └── recreate.js
+│   │   │
+│   │   ├── services/         # business logic
+│   │   │   ├── search/
+│   │   │   │   ├── bm25.js
+│   │   │   │   ├── elasticsearch.js
+│   │   │   │   ├── hybrid.js
+│   │   │   │   └── index.js  # mode dispatcher
+│   │   │   └── indexing.js   # seeding / index recreation
+│   │   │
+│   │   ├── infrastructure/   # clients and external systems
+│   │   │   ├── elasticsearch.js
+│   │   │   ├── qdrant.js
+│   │   │   └── embeddings.js
+│   │   │
+│   │   └── data/
+│   │       └── questions.js  # seed dataset
 │   │
 │   └── package.json
 │

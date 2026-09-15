@@ -1,6 +1,6 @@
 import { Client } from "@elastic/elasticsearch";
 
-import { ELASTICSEARCH_URL, ELASTICSEARCH_INDEX } from "./config.js";
+import { ELASTICSEARCH_URL, ELASTICSEARCH_INDEX } from "../config.js";
 
 export const elasticsearch = new Client({
   node: ELASTICSEARCH_URL,
@@ -42,32 +42,4 @@ export async function recreateElasticsearchIndex() {
   }
 
   await ensureElasticsearchIndex();
-}
-
-export async function seedElasticsearch(questions) {
-  const operations = [];
-
-  for (let i = 0; i < questions.length; i++) {
-    operations.push({
-      index: {
-        _index: ELASTICSEARCH_INDEX,
-        _id: i + 1,
-      },
-    });
-
-    operations.push({
-      text: questions[i],
-    });
-  }
-
-  if (operations.length === 0) {
-    return;
-  }
-
-  await elasticsearch.bulk({
-    operations,
-    refresh: true,
-  });
-
-  console.log(`Elasticsearch seeded: ${questions.length} documents`);
 }

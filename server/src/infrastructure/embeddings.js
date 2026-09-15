@@ -1,4 +1,4 @@
-import { OPENROUTER_API_KEY, EMBEDDING_MODEL } from "./config.js";
+import { OPENROUTER_API_KEY, EMBEDDING_MODEL } from "../config.js";
 
 export async function embedText(text) {
   if (!OPENROUTER_API_KEY) {
