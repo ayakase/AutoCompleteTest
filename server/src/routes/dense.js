@@ -1,9 +1,9 @@
 import { DEFAULT_SEARCH_LIMIT } from "../config.js";
 
-import { searchHybrid } from "../services/search/hybrid.js";
+import { searchDense } from "../services/search/dense.js";
 
-export default async function hybridRoutes(app) {
-  app.get("/api/hybrid", async (request) => {
+export default async function denseRoutes(app) {
+  app.get("/api/dense", async (request) => {
     const { q = "", limit = DEFAULT_SEARCH_LIMIT } = request.query;
 
     if (!q.trim()) {
@@ -13,7 +13,7 @@ export default async function hybridRoutes(app) {
     }
 
     return {
-      results: await searchHybrid(q.trim(), Number(limit)),
+      results: await searchDense(q.trim(), Number(limit)),
     };
   });
 }

@@ -1,10 +1,18 @@
-import { QDRANT_COLLECTION } from "../../config.js";
+import {
+  DEFAULT_SEARCH_LIMIT,
+  QDRANT_COLLECTION,
+} from "../../config.js";
 
 import { embedText } from "../../infrastructure/embeddings.js";
 
 import { qdrant } from "../../infrastructure/qdrant.js";
 
-export async function searchHybrid(queryText, limit = 5) {
+const PREFETCH_LIMIT = 50;
+
+export async function searchHybrid(
+  queryText,
+  limit = DEFAULT_SEARCH_LIMIT,
+) {
   const dense = await embedText(queryText);
 
   const result = await qdrant.query(QDRANT_COLLECTION, {
@@ -12,7 +20,7 @@ export async function searchHybrid(queryText, limit = 5) {
       {
         query: dense,
         using: "dense",
-        limit: 20,
+        limit: PREFETCH_LIMIT,
       },
 
       {
@@ -21,7 +29,7 @@ export async function searchHybrid(queryText, limit = 5) {
           model: "qdrant/bm25",
         },
         using: "bm25",
-        limit: 20,
+        limit: PREFETCH_LIMIT,
       },
     ],
 

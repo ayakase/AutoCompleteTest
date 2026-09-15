@@ -3,16 +3,17 @@ import {
   QDRANT_COLLECTION,
 } from "../../config.js";
 
+import { embedText } from "../../infrastructure/embeddings.js";
+
 import { qdrant } from "../../infrastructure/qdrant.js";
 
-export async function searchBm25(queryText, limit = DEFAULT_SEARCH_LIMIT) {
-  const result = await qdrant.query(QDRANT_COLLECTION, {
-    query: {
-      text: queryText,
-      model: "qdrant/bm25",
-    },
+export async function searchDense(queryText, limit = DEFAULT_SEARCH_LIMIT) {
+  const dense = await embedText(queryText);
 
-    using: "bm25",
+  const result = await qdrant.query(QDRANT_COLLECTION, {
+    query: dense,
+
+    using: "dense",
 
     limit,
 

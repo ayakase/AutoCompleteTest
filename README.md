@@ -80,7 +80,7 @@ This project is intended to make those differences visible and measurable.
 
 # Search Modes
 
-The frontend provides three modes.
+The frontend provides four modes.
 
 ## 1. Elasticsearch
 
@@ -207,7 +207,42 @@ BM25 also does not require the entire query to exactly match a document. It can 
 
 ---
 
-# 3. Hybrid Search
+# 3. Dense Vector
+
+Dense search ignores tokens entirely and compares meaning instead.
+
+```text
+User input
+    │
+    ▼
+Embedding model
+    │
+    ▼
+Qdrant dense vector search
+    │
+    ▼
+Suggestions
+```
+
+The query is embedded with the same model used at indexing time, and Qdrant returns the closest vectors by cosine similarity.
+
+### Strengths
+
+* Semantic matching, not just lexical overlap
+* Works across languages with a multilingual embedding model
+* Finds paraphrases that share no keywords
+
+### Limitations
+
+* Slower than lexical search, because the query must be embedded first
+* Cannot do prefix autocomplete for partial words
+* Only as good as the embedding model
+
+This mode is mainly useful as a baseline to compare against BM25 and hybrid results.
+
+---
+
+# 4. Hybrid Search
 
 Hybrid search combines:
 
@@ -350,6 +385,7 @@ HybridAutocomplete/
 │   │   ├── routes/           # HTTP layer only (validation + response shaping)
 │   │   │   ├── health.js
 │   │   │   ├── bm25.js
+│   │   │   ├── dense.js
 │   │   │   ├── elasticsearch.js
 │   │   │   ├── hybrid.js
 │   │   │   ├── suggestions.js
@@ -357,10 +393,11 @@ HybridAutocomplete/
 │   │   │
 │   │   ├── services/         # business logic
 │   │   │   ├── search/
-│   │   │   │   ├── bm25.js
+│   │   │   │   ├── bm25.js       # sparse BM25
+│   │   │   │   ├── dense.js      # dense vector only
 │   │   │   │   ├── elasticsearch.js
-│   │   │   │   ├── hybrid.js
-│   │   │   │   └── index.js  # mode dispatcher
+│   │   │   │   ├── hybrid.js     # dense + BM25 + RRF
+│   │   │   │   └── index.js      # mode dispatcher
 │   │   │   └── indexing.js   # seeding / index recreation
 │   │   │
 │   │   ├── infrastructure/   # clients and external systems
@@ -413,6 +450,8 @@ VECTOR_SIZE=4096
 
 ELASTICSEARCH_URL=http://localhost:9200
 ELASTICSEARCH_INDEX=autocomplete
+
+DEFAULT_SEARCH_LIMIT=15
 
 PORT=3000
 ```
@@ -559,20 +598,21 @@ GET /api/suggestions?q=<query>&mode=<mode>&limit=<limit>
 | --------- | ----------------- | ------------- |
 | `q`       | User query        | `how to cook` |
 | `mode`    | Search strategy   | `hybrid`      |
-| `limit`   | Number of results | `5`           |
+| `limit`   | Number of results, default `15` | `15` |
 
 Supported modes:
 
 ```text
 hybrid
 bm25
+dense
 elasticsearch
 ```
 
 Example:
 
 ```bash
-curl "http://localhost:3000/api/suggestions?q=how%20to%20cook&mode=hybrid&limit=5"
+curl "http://localhost:3000/api/suggestions?q=how%20to%20cook&mode=hybrid&limit=15"
 ```
 
 Example response:

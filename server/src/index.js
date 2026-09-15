@@ -6,6 +6,7 @@ import { initialize } from "./init.js";
 
 import healthRoutes from "./routes/health.js";
 import bm25Routes from "./routes/bm25.js";
+import denseRoutes from "./routes/dense.js";
 import elasticsearchRoutes from "./routes/elasticsearch.js";
 import hybridRoutes from "./routes/hybrid.js";
 import suggestionRoutes from "./routes/suggestions.js";
@@ -21,6 +22,7 @@ await app.register(cors, {
 
 await app.register(healthRoutes);
 await app.register(bm25Routes);
+await app.register(denseRoutes);
 await app.register(elasticsearchRoutes);
 await app.register(hybridRoutes);
 await app.register(suggestionRoutes);

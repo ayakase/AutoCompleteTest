@@ -1,3 +1,5 @@
+import { DEFAULT_SEARCH_LIMIT } from "../config.js";
+
 import {
   searchSuggestions,
   UnknownSearchModeError,
@@ -5,7 +7,11 @@ import {
 
 export default async function suggestionRoutes(app) {
   app.get("/api/suggestions", async (request, reply) => {
-    const { q = "", mode = "hybrid", limit = 5 } = request.query;
+    const {
+      q = "",
+      mode = "hybrid",
+      limit = DEFAULT_SEARCH_LIMIT,
+    } = request.query;
 
     const queryText = q.trim();
     const resultLimit = Number(limit);

@@ -1,8 +1,14 @@
-import { ELASTICSEARCH_INDEX } from "../../config.js";
+import {
+  DEFAULT_SEARCH_LIMIT,
+  ELASTICSEARCH_INDEX,
+} from "../../config.js";
 
 import { elasticsearch } from "../../infrastructure/elasticsearch.js";
 
-export async function searchElasticsearch(queryText, limit = 5) {
+export async function searchElasticsearch(
+  queryText,
+  limit = DEFAULT_SEARCH_LIMIT,
+) {
   const result = await elasticsearch.search({
     index: ELASTICSEARCH_INDEX,
 

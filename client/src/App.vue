@@ -5,10 +5,12 @@ import axios from "axios";
 const API_URL = "http://localhost:3000";
 const MODE_STORAGE_KEY = "autocomplete-mode";
 const DEBOUNCE_MS = 2000;
+const RESULT_LIMIT = 15;
 
 const validModes = [
   "hybrid",
   "bm25",
+  "dense",
   "elasticsearch",
 ];
 
@@ -83,7 +85,7 @@ async function fetchSuggestions() {
         params: {
           q: currentQuery,
           mode: mode.value,
-          limit: 5,
+          limit: RESULT_LIMIT,
         },
         signal: abortController.signal,
       }
@@ -136,6 +138,16 @@ function scheduleSearch() {
   }, DEBOUNCE_MS);
 }
 
+function searchNow() {
+  if (query.value.trim().length < 2) {
+    return;
+  }
+
+  clearTimers();
+
+  fetchSuggestions();
+}
+
 function changeMode() {
   localStorage.setItem(
     MODE_STORAGE_KEY,
@@ -186,12 +198,24 @@ onBeforeUnmount(() => {
         </label>
 
         <label>
+          <input v-model="mode" type="radio" value="dense" />
+          Dense
+        </label>
+
+        <label>
           <input v-model="mode" type="radio" value="elasticsearch" />
           Elasticsearch
         </label>
       </div>
 
-      <input v-model="query" class="search-input" type="text" placeholder="Type something..." autofocus />
+      <input
+        v-model="query"
+        class="search-input"
+        type="text"
+        placeholder="Type something..."
+        autofocus
+        @keydown.enter.prevent="searchNow"
+      />
 
       <div class="meta">
         <span>

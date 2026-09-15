@@ -19,3 +19,7 @@ export const ELASTICSEARCH_URL =
 
 export const ELASTICSEARCH_INDEX =
   process.env.ELASTICSEARCH_INDEX || "autocomplete";
+
+export const DEFAULT_SEARCH_LIMIT = Number(
+  process.env.DEFAULT_SEARCH_LIMIT || 15,
+);
