@@ -8,6 +8,8 @@ import { searchElasticsearch } from "./elasticsearch.js";
 
 import { searchHybrid } from "./hybrid.js";
 
+import { searchPinecone } from "./pinecone.js";
+
 export class UnknownSearchModeError extends Error {
   constructor(mode) {
     super(
@@ -23,6 +25,7 @@ const SEARCH_STRATEGIES = {
   dense: searchDense,
   elasticsearch: searchElasticsearch,
   hybrid: searchHybrid,
+  pinecone: searchPinecone,
 };
 
 export const SEARCH_MODES = Object.keys(SEARCH_STRATEGIES);

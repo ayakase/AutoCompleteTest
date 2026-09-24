@@ -11,6 +11,8 @@ import elasticsearchRoutes from "./routes/elasticsearch.js";
 import hybridRoutes from "./routes/hybrid.js";
 import suggestionRoutes from "./routes/suggestions.js";
 import recreateRoutes from "./routes/recreate.js";
+import upsertRoutes from "./routes/upsert.js";
+import pineconeRoutes from "./routes/pinecone.js";
 
 const app = Fastify({
   logger: true,
@@ -27,6 +29,8 @@ await app.register(elasticsearchRoutes);
 await app.register(hybridRoutes);
 await app.register(suggestionRoutes);
 await app.register(recreateRoutes);
+await app.register(upsertRoutes);
+await app.register(pineconeRoutes);
 
 await initialize();
 

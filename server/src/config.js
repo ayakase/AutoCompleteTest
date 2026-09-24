@@ -23,3 +23,10 @@ export const ELASTICSEARCH_INDEX =
 export const DEFAULT_SEARCH_LIMIT = Number(
   process.env.DEFAULT_SEARCH_LIMIT || 15,
 );
+
+export const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
+
+export const PINECONE_INDEX = process.env.PINECONE_INDEX;
+
+export const PINECONE_URL = process.env.PINECONE_URL;
+

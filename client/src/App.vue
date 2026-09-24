@@ -12,6 +12,7 @@ const validModes = [
   "bm25",
   "dense",
   "elasticsearch",
+  "pinecone",
 ];
 
 const savedMode =
@@ -29,6 +30,11 @@ const latency = ref(null);
 const error = ref("");
 const loading = ref(false);
 const countdown = ref(0);
+
+const newQuestion = ref("");
+const upserting = ref(false);
+const upsertMessage = ref("");
+const upsertError = ref("");
 
 let debounceTimer = null;
 let countdownTimer = null;
@@ -167,6 +173,37 @@ function changeMode() {
   }
 }
 
+async function submitQuestion() {
+  const question = newQuestion.value.trim();
+
+  if (!question) {
+    return;
+  }
+
+  upserting.value = true;
+  upsertMessage.value = "";
+  upsertError.value = "";
+
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/upsert`,
+      { question }
+    );
+
+    upsertMessage.value =
+      `Added: ${response.data.text ?? question}`;
+
+    newQuestion.value = "";
+  } catch (err) {
+    upsertError.value =
+      err.response?.data?.error ||
+      err.message ||
+      "Upsert failed";
+  } finally {
+    upserting.value = false;
+  }
+}
+
 watch(query, () => {
   scheduleSearch();
 });
@@ -205,6 +242,11 @@ onBeforeUnmount(() => {
         <label>
           <input v-model="mode" type="radio" value="elasticsearch" />
           Elasticsearch
+        </label>
+
+        <label>
+          <input v-model="mode" type="radio" value="pinecone" />
+          Pinecone FTS
         </label>
       </div>
 
@@ -263,6 +305,35 @@ onBeforeUnmount(() => {
         No suggestions
       </p>
     </section>
+
+    <section class="card">
+      <h2>Add a question</h2>
+
+      <form class="upsert-form" @submit.prevent="submitQuestion">
+        <input
+          v-model="newQuestion"
+          class="upsert-input"
+          type="text"
+          placeholder="What do you want to add?"
+        />
+
+        <button
+          class="upsert-button"
+          type="submit"
+          :disabled="upserting"
+        >
+          {{ upserting ? "Adding..." : "Add" }}
+        </button>
+      </form>
+
+      <p v-if="upsertMessage" class="upsert-message">
+        {{ upsertMessage }}
+      </p>
+
+      <p v-if="upsertError" class="error">
+        {{ upsertError }}
+      </p>
+    </section>
   </main>
 </template>
 
@@ -290,8 +361,49 @@ body {
 .page {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
   justify-content: center;
   padding: 80px 20px;
+}
+
+.upsert-form {
+  display: flex;
+  gap: 12px;
+}
+
+.upsert-input {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+}
+
+.upsert-input:focus {
+  border-color: #777;
+}
+
+.upsert-button {
+  padding: 14px 24px;
+  border: 1px solid #222;
+  border-radius: 8px;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.upsert-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.upsert-message {
+  margin: 16px 0 0;
+  color: #2a7d4f;
 }
 
 .card {
@@ -302,6 +414,11 @@ body {
 h1 {
   margin: 0 0 24px;
   font-size: 28px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
 }
 
 .modes {

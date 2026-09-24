@@ -60,7 +60,6 @@ export async function seedQdrant(questions = QUESTIONS) {
           model: "qdrant/bm25",
         },
       },
-
       payload: {
         text,
       },
